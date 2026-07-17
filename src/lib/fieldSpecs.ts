@@ -62,6 +62,19 @@ export const SOURCE_FIELDS: Record<string, FieldSpec[]> = {
     { name: 'batch_size', label: 'Batch Size', type: 'number', default: 20000 },
     { name: 'checkpoint_file', label: 'Checkpoint File (optional)', type: 'text' },
   ],
+  athena: [
+    { name: 'database', label: 'Database (Glue catalog)', type: 'text', required: true, help: 'The Athena/Glue database the dump’s table is registered in' },
+    { name: 'workgroup', label: 'Workgroup', type: 'text', default: 'primary' },
+    { name: 'output_location', label: 'Query Output Location', type: 'text', placeholder: 's3://my-athena-results/', help: 'S3 path for Athena to stage query results; optional if the workgroup has a default' },
+    { name: 'region', label: 'Region', type: 'text', default: 'us-east-1' },
+    { name: 'catalog', label: 'Data Catalog', type: 'text', default: 'AwsDataCatalog' },
+    { name: 'access_key', label: 'Access Key (optional)', type: 'text', help: 'Leave blank to use the default AWS credential chain' },
+    { name: 'secret_key', label: 'Secret Key (optional)', type: 'password' },
+    { name: 'session_token', label: 'Session Token (optional)', type: 'password' },
+    { name: 'batch_size', label: 'Batch Size', type: 'number', default: 1000 },
+    { name: 'incremental_column', label: 'Incremental Column (optional)', type: 'text' },
+    { name: 'checkpoint_file', label: 'Checkpoint File (optional)', type: 'text' },
+  ],
 }
 
 export const TARGET_FIELDS: Record<string, FieldSpec[]> = {

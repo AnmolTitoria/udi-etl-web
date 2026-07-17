@@ -1,4 +1,4 @@
-export type SourceType = 'postgresql' | 'mongodb' | 'sql' | 'file_upload'
+export type SourceType = 'postgresql' | 'mongodb' | 'sql' | 'file_upload' | 'athena'
 export type TargetType = 's3'
 
 export interface ConnectionCreate {

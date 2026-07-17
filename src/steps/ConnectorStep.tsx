@@ -8,7 +8,7 @@ interface ConnectorStepProps {
   onComplete: (connection: ConnectionResponse, tables?: string[], sourceConfig?: Record<string, unknown>) => void
 }
 
-const HIDDEN_CONFIG_KEYS = new Set(['password'])
+const HIDDEN_CONFIG_KEYS = new Set(['password', 'secret_key', 'session_token'])
 
 function formatDate(raw: string | null): string {
   if (!raw) return 'N/A'
