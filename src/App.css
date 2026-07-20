@@ -443,6 +443,26 @@
   border-bottom: 1px solid var(--border);
 }
 
+.query-editor,
+.json-field {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 13px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  resize: vertical;
+}
+
+.query-results {
+  margin-top: 16px;
+}
+
+.results-table-wrap {
+  overflow-x: auto;
+}
+
 .error-message {
   background: var(--danger-bg);
   color: var(--danger);

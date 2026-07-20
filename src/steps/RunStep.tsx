@@ -11,11 +11,13 @@ interface RunStepProps {
   sourceConfig?: Record<string, unknown>
   onBack: () => void
   onRestart: () => void
+  onQuery?: () => void
+  onTransform?: () => void
 }
 
 const POLL_INTERVAL_MS = 2000
 
-export default function RunStep({ connection, tables, targetType, targetConfig, sourceType, sourceConfig, onBack, onRestart }: RunStepProps) {
+export default function RunStep({ connection, tables, targetType, targetConfig, sourceType, sourceConfig, onBack, onRestart, onQuery, onTransform }: RunStepProps) {
   const [taskId, setTaskId] = useState<string | null>(null)
   const [status, setStatus] = useState<TaskStatusResponse | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -34,7 +36,7 @@ export default function RunStep({ connection, tables, targetType, targetConfig, 
     try {
       const res = await startMigration(connection.id, tables, targetType, targetConfig, sourceType, sourceConfig)
       setTaskId(res.task_id)
-      setStatus({ task_id: res.task_id, status: 'running', result: null, error: null })
+      setStatus({ task_id: res.task_id, status: 'running', stage: 'landed', result: null, error: null, detail: null })
 
       intervalRef.current = window.setInterval(async () => {
         try {
@@ -125,8 +127,18 @@ export default function RunStep({ connection, tables, targetType, targetConfig, 
         <button type="button" className="secondary-button" onClick={onBack} disabled={Boolean(taskId) && !isDone}>
           Back
         </button>
+        {isDone && onQuery && (
+          <button type="button" className="secondary-button" onClick={onQuery}>
+            Query Athena
+          </button>
+        )}
+        {isDone && status?.status === 'completed' && onTransform && (
+          <button type="button" className="primary-button" onClick={onTransform}>
+            Transform &amp; Publish
+          </button>
+        )}
         {isDone && (
-          <button type="button" className="primary-button" onClick={onRestart}>
+          <button type="button" className="secondary-button" onClick={onRestart}>
             Start Over
           </button>
         )}

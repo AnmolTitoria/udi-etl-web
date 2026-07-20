@@ -50,6 +50,17 @@ export default function DynamicForm({ fields, values, onChange, disabled }: Dyna
                     </option>
                   ))}
                 </select>
+              ) : field.type === 'json' ? (
+                <textarea
+                  id={field.name}
+                  className="json-field"
+                  value={String(values[field.name] ?? '{}')}
+                  placeholder={field.placeholder ?? '{}'}
+                  disabled={disabled}
+                  rows={3}
+                  spellCheck={false}
+                  onChange={(e) => onChange(field.name, e.target.value)}
+                />
               ) : (
                 <input
                   id={field.name}

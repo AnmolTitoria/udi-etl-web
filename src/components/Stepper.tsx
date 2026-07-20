@@ -1,13 +1,14 @@
-const STEPS = ['Connector', 'Schema', 'Target', 'Run']
+const DEFAULT_STEPS = ['Connector', 'Schema', 'Target', 'Run']
 
 interface StepperProps {
   currentStep: number
+  steps?: string[]
 }
 
-export default function Stepper({ currentStep }: StepperProps) {
+export default function Stepper({ currentStep, steps = DEFAULT_STEPS }: StepperProps) {
   return (
     <ol className="stepper">
-      {STEPS.map((label, index) => {
+      {steps.map((label, index) => {
         const status = index === currentStep ? 'active' : index < currentStep ? 'done' : 'upcoming'
         return (
           <li className={`stepper-item stepper-item--${status}`} key={label}>

@@ -5,6 +5,9 @@ import ConnectorStep from './steps/ConnectorStep'
 import SchemaStep from './steps/SchemaStep'
 import TargetStep from './steps/TargetStep'
 import RunStep from './steps/RunStep'
+import TransformStep from './steps/TransformStep'
+import PublishStep from './steps/PublishStep'
+import QueryStep from './steps/QueryStep'
 import { isAuthenticated } from './api/client'
 import type { ConnectionResponse } from './api/types'
 import './App.css'
@@ -15,6 +18,7 @@ interface WizardState {
   targetType: string
   targetConfig: Record<string, unknown>
   sourceConfig?: Record<string, unknown>
+  publishTableName?: string
 }
 
 const INITIAL_STATE: WizardState = {
@@ -44,6 +48,11 @@ function App() {
     return <AuthPage onAuth={() => setAuthenticated(true)} />
   }
 
+  const isAthena = wizard.connection?.source_type === 'athena'
+  const steps = isAthena
+    ? ['Connector', 'Schema', 'Target', 'Run', 'Transform', 'Publish', 'Query']
+    : ['Connector', 'Schema', 'Target', 'Run', 'Transform', 'Publish']
+
   return (
     <div className="app-shell">
       <header className="app-header">
@@ -54,7 +63,7 @@ function App() {
         </button>
       </header>
 
-      <Stepper currentStep={step} />
+      <Stepper currentStep={step} steps={steps} />
 
       <main className="wizard-body">
         {step === 0 && (
@@ -101,7 +110,37 @@ function App() {
             sourceConfig={wizard.sourceConfig}
             onBack={() => setStep(2)}
             onRestart={restart}
+            onQuery={isAthena ? () => setStep(6) : undefined}
+            onTransform={() => setStep(4)}
           />
+        )}
+
+        {step === 4 && wizard.connection && (
+          <TransformStep
+            connection={wizard.connection}
+            tables={wizard.tables}
+            targetConfig={wizard.targetConfig}
+            onBack={() => setStep(3)}
+            onRestart={restart}
+            onPublish={(tableName) => {
+              setWizard((prev) => ({ ...prev, publishTableName: tableName }))
+              setStep(5)
+            }}
+          />
+        )}
+
+        {step === 5 && wizard.connection && wizard.publishTableName && (
+          <PublishStep
+            connection={wizard.connection}
+            tableName={wizard.publishTableName}
+            targetConfig={wizard.targetConfig}
+            onBack={() => setStep(4)}
+            onRestart={restart}
+          />
+        )}
+
+        {step === 6 && wizard.connection && (
+          <QueryStep connection={wizard.connection} onBack={() => setStep(3)} onRestart={restart} />
         )}
       </main>
     </div>

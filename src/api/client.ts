@@ -2,12 +2,16 @@ import type {
   ConnectionCreate,
   ConnectionListResponse,
   ConnectionResponse,
+  ConnectorSchemaResponse,
   MigrationResponse,
+  PublishRequest,
+  QueryResponse,
   SourcesResponse,
   TableListResponse,
   TargetsResponse,
   TaskStatusResponse,
   TokenResponse,
+  TransformRequest,
   UserResponse,
 } from './types'
 
@@ -95,6 +99,14 @@ export function getTargets() {
   return request<TargetsResponse>('/targets')
 }
 
+export function getSourceSchema(name: string) {
+  return request<ConnectorSchemaResponse>(`/sources/${encodeURIComponent(name)}/schema`)
+}
+
+export function getTargetSchema(name: string) {
+  return request<ConnectorSchemaResponse>(`/targets/${encodeURIComponent(name)}/schema`)
+}
+
 // --- Connections ---
 
 export function listConnections() {
@@ -143,6 +155,27 @@ export function startMigration(
 
 export function getMigrationStatus(taskId: string) {
   return request<TaskStatusResponse>(`/migrate/${taskId}`)
+}
+
+export function transformConnection(connectionId: string, payload: TransformRequest) {
+  return request<MigrationResponse>(`/connections/${connectionId}/transform`, {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  })
+}
+
+export function publishConnection(connectionId: string, payload: PublishRequest) {
+  return request<MigrationResponse>(`/connections/${connectionId}/publish`, {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  })
+}
+
+export function runQuery(connectionId: string, sql: string) {
+  return request<QueryResponse>(`/connections/${connectionId}/query`, {
+    method: 'POST',
+    body: JSON.stringify({ sql }),
+  })
 }
 
 export { ApiError }

@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
-import { ApiError, createConnection, getSources, listConnections, testConnection } from '../api/client'
-import type { ConnectionResponse, SourceType } from '../api/types'
-import { SOURCE_FIELDS, defaultsFor } from '../lib/fieldSpecs'
+import { ApiError, createConnection, getSourceSchema, getSources, listConnections, testConnection } from '../api/client'
+import type { ConnectionCreate, ConnectionResponse, SourceType } from '../api/types'
+import { SOURCE_FIELDS, defaultsFor, resolveJsonFields, schemaFieldsToFieldSpecs, type FieldSpec } from '../lib/fieldSpecs'
 import DynamicForm from '../components/DynamicForm'
 
 interface ConnectorStepProps {
@@ -38,18 +38,45 @@ export default function ConnectorStep({ onComplete }: ConnectorStepProps) {
   const [creating, setCreating] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
+  // Field specs fetched from GET /sources/{type}/schema for any source type
+  // that isn't one of the curated SOURCE_FIELDS entries below — this is
+  // what makes a custom/plugin connector selectable and configurable
+  // without a frontend code change.
+  const [customFields, setCustomFields] = useState<Record<string, FieldSpec[]>>({})
+  const [schemaLoading, setSchemaLoading] = useState(false)
 
   function toggleExpand(id: string) {
     setExpandedId((prev) => (prev === id ? null : id))
   }
 
+  async function ensureFieldsFor(type: string) {
+    if (SOURCE_FIELDS[type] || customFields[type]) return
+    setSchemaLoading(true)
+    try {
+      const schema = await getSourceSchema(type)
+      setCustomFields((prev) => ({ ...prev, [type]: schemaFieldsToFieldSpecs(schema.fields) }))
+    } catch {
+      // Leave it as an empty field list rather than blocking selection —
+      // the connector is still usable via Test/Create with no extra config
+      // if it happens to need none.
+      setCustomFields((prev) => ({ ...prev, [type]: [] }))
+    } finally {
+      setSchemaLoading(false)
+    }
+  }
+
   useEffect(() => {
     getSources()
-      .then((sourcesRes) => {
+      .then(async (sourcesRes) => {
         setSources(sourcesRes.sources)
         if (sourcesRes.sources.length > 0) {
-          setSourceType(sourcesRes.sources[0])
-          setValues(defaultsFor(SOURCE_FIELDS[sourcesRes.sources[0]] ?? []))
+          const first = sourcesRes.sources[0]
+          setSourceType(first)
+          if (SOURCE_FIELDS[first]) {
+            setValues(defaultsFor(SOURCE_FIELDS[first]))
+          } else {
+            await ensureFieldsFor(first)
+          }
         }
       })
       .catch((e) => setError(e instanceof Error ? e.message : String(e)))
@@ -60,20 +87,49 @@ export default function ConnectorStep({ onComplete }: ConnectorStepProps) {
     listConnections()
       .then((res) => setExisting(res.connections))
       .catch(() => setExisting([]))
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
+
+  // Once a dynamically-fetched schema lands for the currently selected
+  // type, seed its default values (curated types already get this in
+  // handleSourceTypeChange/the initial load, synchronously).
+  useEffect(() => {
+    if (!SOURCE_FIELDS[sourceType] && customFields[sourceType]) {
+      setValues(defaultsFor(customFields[sourceType]))
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sourceType, customFields[sourceType]])
 
   function handleSourceTypeChange(next: string) {
     setSourceType(next)
-    setValues(defaultsFor(SOURCE_FIELDS[next] ?? []))
     setError(null)
+    if (SOURCE_FIELDS[next]) {
+      setValues(defaultsFor(SOURCE_FIELDS[next]))
+    } else if (customFields[next]) {
+      setValues(defaultsFor(customFields[next]))
+    } else {
+      setValues({})
+      void ensureFieldsFor(next)
+    }
   }
 
-  function buildPayload() {
+  function buildPayload(): { payload: ConnectionCreate | null; error: string | null } {
+    const { values: resolved, error: jsonError } = resolveJsonFields(fields, values)
+    if (jsonError) return { payload: null, error: jsonError }
     return {
-      name: name || `${sourceType}-connection`,
-      source_type: sourceType as SourceType,
-      description: description || undefined,
-      ...values,
+      payload: {
+        name: name || `${sourceType}-connection`,
+        source_type: sourceType as SourceType,
+        description: description || undefined,
+        // Sent uniformly through extra_config rather than spread at the top
+        // level — the backend resolves it against whichever fields the
+        // connector's Config class actually declares, so this works the
+        // same for a built-in connector's named fields and a custom
+        // connector's arbitrary ones without this form needing to know the
+        // difference.
+        extra_config: resolved,
+      },
+      error: null,
     }
   }
 
@@ -86,9 +142,15 @@ export default function ConnectorStep({ onComplete }: ConnectorStepProps) {
       return
     }
 
+    const { payload, error: buildError } = buildPayload()
+    if (buildError || !payload) {
+      setError(buildError)
+      return
+    }
+
     setTesting(true)
     try {
-      const res = await testConnection(buildPayload())
+      const res = await testConnection(payload)
       setError(null)
       alert(res.message || 'Connection test successful!')
     } catch (e) {
@@ -107,9 +169,15 @@ export default function ConnectorStep({ onComplete }: ConnectorStepProps) {
       return
     }
 
+    const { payload, error: buildError } = buildPayload()
+    if (buildError || !payload) {
+      setError(buildError)
+      return
+    }
+
     setCreating(true)
     try {
-      const connection = await createConnection(buildPayload())
+      const connection = await createConnection(payload)
       const sourceConfig =
         sourceType === 'file_upload'
           ? ({
@@ -127,7 +195,8 @@ export default function ConnectorStep({ onComplete }: ConnectorStepProps) {
     }
   }
 
-  const fields = SOURCE_FIELDS[sourceType] ?? []
+  const fields = SOURCE_FIELDS[sourceType] ?? customFields[sourceType] ?? []
+  const isCustomType = !SOURCE_FIELDS[sourceType]
 
   if (loading) return <p>Loading connector types...</p>
 
@@ -169,9 +238,18 @@ export default function ConnectorStep({ onComplete }: ConnectorStepProps) {
                 </option>
               ))}
             </select>
+            {isCustomType && (
+              <p className="field-help">
+                Custom connector — fields below are read from its own config schema.
+              </p>
+            )}
           </div>
 
-          <DynamicForm fields={fields} values={values} onChange={(n, v) => setValues((prev) => ({ ...prev, [n]: v }))} disabled={testing || creating} />
+          {isCustomType && schemaLoading ? (
+            <p className="muted">Loading field list for "{sourceType}"…</p>
+          ) : (
+            <DynamicForm fields={fields} values={values} onChange={(n, v) => setValues((prev) => ({ ...prev, [n]: v }))} disabled={testing || creating} />
+          )}
 
           {error && <p className="error-message">{error}</p>}
 
