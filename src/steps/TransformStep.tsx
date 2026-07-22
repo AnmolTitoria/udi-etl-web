@@ -245,7 +245,7 @@ export default function TransformStep({ connection, tables, targetConfig, onBack
 
         {!taskId && (
           <button type="button" className="primary-button" disabled={starting} onClick={handleStart}>
-            {starting ? 'Starting…' : 'Run Transform'}
+            <span className="btn-icon">▶</span> {starting ? 'Starting…' : 'Run Transform'}
           </button>
         )}
 
@@ -284,16 +284,16 @@ export default function TransformStep({ connection, tables, targetConfig, onBack
 
       <div className="step-actions">
         <button type="button" className="secondary-button" onClick={onBack} disabled={Boolean(taskId) && !isDone}>
-          Back
+          <span className="btn-icon">←</span> Back
         </button>
         {isDone && status?.status === 'completed' && (
           <button type="button" className="primary-button" onClick={() => onPublish(tableName)}>
-            Continue to Publish
+            Continue to Publish <span className="btn-icon">→</span>
           </button>
         )}
         {isDone && (
           <button type="button" className="secondary-button" onClick={onRestart}>
-            Start Over
+            <span className="btn-icon">↺</span> Start Over
           </button>
         )}
       </div>

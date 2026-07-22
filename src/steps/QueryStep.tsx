@@ -60,7 +60,7 @@ export default function QueryStep({ connection, onBack, onRestart }: QueryStepPr
         {error && <p className="error-message">{error}</p>}
 
         <button type="button" className="primary-button" disabled={running} onClick={handleRun}>
-          {running ? 'Running…' : 'Run Query'}
+          <span className="btn-icon">🔎</span> {running ? 'Running…' : 'Run Query'}
         </button>
 
         {result && (
@@ -94,10 +94,10 @@ export default function QueryStep({ connection, onBack, onRestart }: QueryStepPr
 
       <div className="step-actions">
         <button type="button" className="secondary-button" onClick={onBack}>
-          Back
+          <span className="btn-icon">←</span> Back
         </button>
         <button type="button" className="primary-button" onClick={onRestart}>
-          Start Over
+          <span className="btn-icon">↺</span> Start Over
         </button>
       </div>
     </div>

@@ -75,7 +75,7 @@ export default function SchemaStep({ connection, initialSelected, onComplete, on
                 <li key={t}>
                   <label className="checkbox-label">
                     <input type="checkbox" checked={selected.has(t)} onChange={() => toggle(t)} />
-                    {t}
+                    <span className="btn-icon">{isNoSql(connection.source_type) ? '🍃' : '▤'}</span> {t}
                   </label>
                 </li>
               ))}
@@ -86,7 +86,7 @@ export default function SchemaStep({ connection, initialSelected, onComplete, on
 
       <div className="step-actions">
         <button type="button" className="secondary-button" onClick={onBack}>
-          Back
+          <span className="btn-icon">←</span> Back
         </button>
         <button
           type="button"
@@ -94,7 +94,7 @@ export default function SchemaStep({ connection, initialSelected, onComplete, on
           disabled={selected.size === 0}
           onClick={() => onComplete(Array.from(selected))}
         >
-          Next ({selected.size} selected)
+          Next ({selected.size} selected) <span className="btn-icon">→</span>
         </button>
       </div>
     </div>

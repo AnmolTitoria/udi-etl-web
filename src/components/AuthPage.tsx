@@ -34,6 +34,7 @@ export default function AuthPage({ onAuth }: AuthPageProps) {
   return (
     <div className="app-shell">
       <header className="app-header">
+        <div className="app-logo">⇄</div>
         <h1>Data Migration</h1>
         <p>Sign in to manage your data migrations.</p>
       </header>
@@ -60,7 +61,8 @@ export default function AuthPage({ onAuth }: AuthPageProps) {
 
         {error && <p className="error-message">{error}</p>}
 
-        <button type="submit" className="primary-button" disabled={loading} style={{ width: '100%', marginTop: 8 }}>
+        <button type="submit" className="primary-button" disabled={loading} style={{ width: '100%', marginTop: 8, justifyContent: 'center' }}>
+          <span className="btn-icon">{mode === 'login' ? '🔐' : '✨'}</span>
           {loading ? 'Please wait…' : mode === 'login' ? 'Sign In' : 'Create Account'}
         </button>
 

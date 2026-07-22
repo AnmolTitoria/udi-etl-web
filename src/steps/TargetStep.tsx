@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { ApiError, getTargets } from '../api/client'
 import { TARGET_FIELDS, defaultsFor } from '../lib/fieldSpecs'
+import { getTypeMeta } from '../lib/typeIcons'
 import DynamicForm from '../components/DynamicForm'
 
 interface TargetStepProps {
@@ -51,13 +52,21 @@ export default function TargetStep({ initialTargetType, initialTargetConfig, onC
       <div className="card">
         <div className="form-field">
           <label htmlFor="target-type">Target Type</label>
-          <select id="target-type" value={targetType} onChange={(e) => handleTargetTypeChange(e.target.value)}>
-            {targets.map((t) => (
-              <option key={t} value={t}>
-                {t}
-              </option>
-            ))}
-          </select>
+          <div className="type-select-row">
+            <span
+              className="type-icon"
+              style={{ width: 30, height: 30, fontSize: 15, background: `${getTypeMeta(targetType).color}22`, color: getTypeMeta(targetType).color }}
+            >
+              {getTypeMeta(targetType).icon}
+            </span>
+            <select id="target-type" value={targetType} onChange={(e) => handleTargetTypeChange(e.target.value)}>
+              {targets.map((t) => (
+                <option key={t} value={t}>
+                  {getTypeMeta(t).icon} {t}
+                </option>
+              ))}
+            </select>
+          </div>
         </div>
 
         <DynamicForm fields={fields} values={values} onChange={(n, v) => setValues((prev) => ({ ...prev, [n]: v }))} />
@@ -65,7 +74,7 @@ export default function TargetStep({ initialTargetType, initialTargetConfig, onC
 
       <div className="step-actions">
         <button type="button" className="secondary-button" onClick={onBack}>
-          Back
+          <span className="btn-icon">←</span> Back
         </button>
         <button
           type="button"
@@ -73,7 +82,7 @@ export default function TargetStep({ initialTargetType, initialTargetConfig, onC
           disabled={requiredMissing}
           onClick={() => onComplete(targetType, values)}
         >
-          Next
+          Next <span className="btn-icon">→</span>
         </button>
       </div>
     </div>

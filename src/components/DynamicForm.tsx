@@ -135,7 +135,7 @@ function FilePickerField({
         disabled={disabled}
         onClick={() => inputRef.current?.click()}
       >
-        Browse Files
+        <span className="btn-icon">📁</span> Browse Files
       </button>
       <input
         ref={inputRef}

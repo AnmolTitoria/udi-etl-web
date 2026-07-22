@@ -56,10 +56,11 @@ function App() {
   return (
     <div className="app-shell">
       <header className="app-header">
+        <div className="app-logo">⇄</div>
         <h1>Data Migration</h1>
         <p>Connect a source, pick what to migrate, and send it to S3.</p>
-        <button type="button" className="link-button" onClick={handleLogout} style={{ fontSize: 12 }}>
-          Sign out
+        <button type="button" className="link-button" onClick={handleLogout} style={{ fontSize: 12, marginTop: 10 }}>
+          <span className="btn-icon">⏻</span> Sign out
         </button>
       </header>
 

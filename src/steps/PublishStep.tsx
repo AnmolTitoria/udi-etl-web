@@ -93,7 +93,7 @@ export default function PublishStep({ connection, tableName, targetConfig, onBac
 
         {!taskId && (
           <button type="button" className="primary-button" disabled={starting} onClick={handleStart}>
-            {starting ? 'Starting…' : 'Publish'}
+            <span className="btn-icon">▶</span> {starting ? 'Starting…' : 'Publish'}
           </button>
         )}
 
@@ -146,11 +146,11 @@ export default function PublishStep({ connection, tableName, targetConfig, onBac
 
       <div className="step-actions">
         <button type="button" className="secondary-button" onClick={onBack} disabled={Boolean(taskId) && !isDone}>
-          Back
+          <span className="btn-icon">←</span> Back
         </button>
         {isDone && (
           <button type="button" className="primary-button" onClick={onRestart}>
-            Start Over
+            <span className="btn-icon">↺</span> Start Over
           </button>
         )}
       </div>

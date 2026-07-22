@@ -74,7 +74,7 @@ export default function RunStep({ connection, tables, targetType, targetConfig, 
         <ul className="pill-list">
           {displayItems.map((t) => (
             <li key={t} className="pill">
-              {t}
+              <span className="btn-icon">{sourceType === 'file_upload' ? '📎' : '▤'}</span> {t}
             </li>
           ))}
         </ul>
@@ -83,7 +83,7 @@ export default function RunStep({ connection, tables, targetType, targetConfig, 
 
         {!taskId && (
           <button type="button" className="primary-button" disabled={starting} onClick={handleStart}>
-            {starting ? 'Starting…' : 'Start Migration'}
+            <span className="btn-icon">▶</span> {starting ? 'Starting…' : 'Start Migration'}
           </button>
         )}
 
@@ -125,21 +125,21 @@ export default function RunStep({ connection, tables, targetType, targetConfig, 
 
       <div className="step-actions">
         <button type="button" className="secondary-button" onClick={onBack} disabled={Boolean(taskId) && !isDone}>
-          Back
+          <span className="btn-icon">←</span> Back
         </button>
         {isDone && onQuery && (
           <button type="button" className="secondary-button" onClick={onQuery}>
-            Query Athena
+            <span className="btn-icon">🔎</span> Query Athena
           </button>
         )}
         {isDone && status?.status === 'completed' && onTransform && (
           <button type="button" className="primary-button" onClick={onTransform}>
-            Transform &amp; Publish
+            Transform &amp; Publish <span className="btn-icon">→</span>
           </button>
         )}
         {isDone && (
           <button type="button" className="secondary-button" onClick={onRestart}>
-            Start Over
+            <span className="btn-icon">↺</span> Start Over
           </button>
         )}
       </div>

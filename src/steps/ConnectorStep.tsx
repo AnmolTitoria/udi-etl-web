@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { ApiError, createConnection, getSourceSchema, getSources, listConnections, testConnection } from '../api/client'
 import type { ConnectionCreate, ConnectionResponse, SourceType } from '../api/types'
 import { SOURCE_FIELDS, defaultsFor, resolveJsonFields, schemaFieldsToFieldSpecs, type FieldSpec } from '../lib/fieldSpecs'
+import { getTypeMeta } from '../lib/typeIcons'
 import DynamicForm from '../components/DynamicForm'
 
 interface ConnectorStepProps {
@@ -231,13 +232,21 @@ export default function ConnectorStep({ onComplete }: ConnectorStepProps) {
 
           <div className="form-field">
             <label htmlFor="source-type">Source Type</label>
-            <select id="source-type" value={sourceType} onChange={(e) => handleSourceTypeChange(e.target.value)}>
-              {sources.map((s) => (
-                <option key={s} value={s}>
-                  {s}
-                </option>
-              ))}
-            </select>
+            <div className="type-select-row">
+              <span
+                className="type-icon"
+                style={{ width: 30, height: 30, fontSize: 15, background: `${getTypeMeta(sourceType).color}22`, color: getTypeMeta(sourceType).color }}
+              >
+                {getTypeMeta(sourceType).icon}
+              </span>
+              <select id="source-type" value={sourceType} onChange={(e) => handleSourceTypeChange(e.target.value)}>
+                {sources.map((s) => (
+                  <option key={s} value={s}>
+                    {getTypeMeta(s).icon} {s}
+                  </option>
+                ))}
+              </select>
+            </div>
             {isCustomType && (
               <p className="field-help">
                 Custom connector — fields below are read from its own config schema.
@@ -255,10 +264,10 @@ export default function ConnectorStep({ onComplete }: ConnectorStepProps) {
 
           <div className="button-group">
             <button type="button" className="secondary-button" disabled={testing || creating} onClick={handleTest}>
-              {testing ? 'Testing…' : 'Test Connection'}
+              <span className="btn-icon">⚡</span> {testing ? 'Testing…' : 'Test Connection'}
             </button>
             <button type="button" className="primary-button" disabled={testing || creating} onClick={handleCreate}>
-              {creating ? 'Creating…' : 'Create Connection'}
+              <span className="btn-icon">➕</span> {creating ? 'Creating…' : 'Create Connection'}
             </button>
           </div>
         </form>
@@ -274,7 +283,12 @@ export default function ConnectorStep({ onComplete }: ConnectorStepProps) {
                   <div key={c.id} className={`saved-item${isOpen ? ' saved-item--open' : ''}`}>
                     <button type="button" className="saved-item__header" onClick={() => toggleExpand(c.id)}>
                       <span className="saved-item__name">{c.name}</span>
-                      <span className="tag">{c.source_type}</span>
+                      <span
+                        className="tag tag--type"
+                        style={{ color: getTypeMeta(c.source_type).color, borderColor: `${getTypeMeta(c.source_type).color}55` }}
+                      >
+                        {getTypeMeta(c.source_type).icon} {c.source_type}
+                      </span>
                       <span className="saved-item__arrow">{isOpen ? '▼' : '▶'}</span>
                     </button>
 
@@ -294,7 +308,7 @@ export default function ConnectorStep({ onComplete }: ConnectorStepProps) {
                       )}
 
                       <button type="button" className="saved-item__use" onClick={() => onComplete(c)}>
-                        Use
+                        ✓ Use
                       </button>
                     </div>
                   </div>
